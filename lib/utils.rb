@@ -132,33 +132,41 @@ module Utils
   ]
   
   SPECIAL_WORDS = UNCAPITALIZABLE_SPECIAL_WORDS + CAPITALIZABLE_SPECIAL_WORDS
-  
+    
   def self.clean(sentence)
-    sentence.sanitize.scan(/([\w|']+)?(-|\ |,|;|\(|\)|\Z)/).collect_with_index do |token, index|
-      puts token
-      word = token[0].to_s
-      sep  = token[1].to_s
-      clean_word(word, index == 0) + sep
-    end.join('')
-  end
-  
-  def self.clean_word(word, first = false)
-    if word.downcase =~ FEAT_WORD_REGEX
-      return 'ft.'
-    else
-      if match = SPECIAL_WORDS.detect { |sw| sw.downcase == word.downcase }
-        if first
-          if UNCAPITALIZABLE_SPECIAL_WORDS.detect { |usw| usw.downcase == word.downcase }
-            return match
+    sentence.sanitize.split(' ').collect_with_index do |token, index|
+      if index.zero?
+        if master = SPECIAL_WORDS.detect { |sw| sw.downcase == token.downcase }
+          if UNCAPITALIZABLE_SPECIAL_WORDS.detect { |usw| usw.downcase == token.downcase }
+            master
           else
-            return match.capitalize
+            capitalize(master)
           end
         else
-          match
+          capitalize(token)
         end
       else
-        return word.capitalize
+        return 'ft.' if token.downcase =~ FEAT_WORD_REGEX
+        
+        if master = SPECIAL_WORDS.detect { |sw| sw.downcase == token }
+          return master
+        else
+          return capitalize(token)
+        end
       end
+    end.join(' ')
+  end
+    
+  # Inspired from :
+  # http://github.com/johnmyleswhite/titlecase-itunes-tracks/blob/master/titlecase.rb
+  def self.capitalize(word)
+    if word =~ /^['"\(\[']*([a-z])/
+      i = word.index($1)
+      x = word[i, word.length]
+      word[i, 1] = word[i, 1].capitalize
+      word
+    else
+      word.capitalize
     end
   end
 end

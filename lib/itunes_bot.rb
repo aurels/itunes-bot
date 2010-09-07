@@ -27,7 +27,7 @@ class ItunesBot
         actual  = track.send(property).get
         cleaned = send("clean_#{property}", actual)
         if cleaned != actual
-          #track.send(property).set cleaned
+          track.send(property).set cleaned
           logger.info "[Cleaned #{property}] #{actual} => #{cleaned}"
         end
       end
@@ -56,6 +56,7 @@ class ItunesBot
   end
   
   def clean_field(value)
-    Utils.clean(value)
+    #Utils.clean(value)
+    value.sanitize
   end
 end
